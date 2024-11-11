@@ -3,29 +3,44 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>All Users</title>
+    <title>Home Page</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
         }
 
         .container {
+            max-width: 600px;
+            margin: 50px auto;
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
         }
 
-        h2 {
+        h1 {
             text-align: center;
-            color: #333;
+        }
+
+        .btn {
+            display: block;
+            width: 100%;
+            padding: 10px;
+            margin: 10px 0;
+            background-color: #5c6bc0;
+            color: white;
+            text-align: center;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            text-decoration: none;
+        }
+
+        .btn:hover {
+            background-color: #3f51b5;
         }
 
         ul {
@@ -35,88 +50,52 @@
 
         li {
             padding: 8px;
-            border-bottom: 1px solid #ddd;
-            text-align: center;
-        }
-
-        li:last-child {
-            border-bottom: none;
-        }
-
-        .back-link {
-            display: block;
-            text-align: center;
-            margin-top: 20px;
-        }
-
-        .back-link a {
-            text-decoration: none;
-            color: #5c6bc0;
-            font-size: 16px;
-        }
-
-        .back-link a:hover {
-            color: #3f51b5;
+            background-color: #fafafa;
+            margin: 5px 0;
+            border-radius: 4px;
+            border: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>All Users</h2>
-        <ul id="userList">
-            <!-- Users will be listed here -->
-        </ul>
-        <div class="back-link">
-            <a href="index.html">Back to Home</a>
-        </div>
+        <h1>Welcome to the User Registration</h1>
+        <a href="register.html" class="btn">Register</a>
+        <h2>All Users:</h2>
+        <ul id="user-list"></ul>
     </div>
 
     <script>
-        // Open IndexedDB (create it if it doesn't exist)
-        let db;
-        const request = indexedDB.open("UserDatabase", 1);
+        // Open IndexedDB database
+        const dbRequest = indexedDB.open("userDatabase", 1);
 
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            db.createObjectStore("users", { keyPath: "username" });
+        dbRequest.onupgradeneeded = function (e) {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("users")) {
+                db.createObjectStore("users", { keyPath: "id", autoIncrement: true });
+            }
         };
 
-        request.onsuccess = function(event) {
-            db = event.target.result;
-            displayUsers();
+        dbRequest.onsuccess = function (e) {
+            const db = e.target.result;
+            displayUsers(db);
         };
 
-        request.onerror = function(event) {
-            alert("Error opening IndexedDB database");
-        };
+        // Display all registered users from IndexedDB
+        function displayUsers(db) {
+            const transaction = db.transaction("users", "readonly");
+            const objectStore = transaction.objectStore("users");
+            const userList = document.getElementById("user-list");
 
-        // Function to display all users
-        function displayUsers() {
-            const transaction = db.transaction(["users"], "readonly");
-            const userStore = transaction.objectStore("users");
-            const getAllRequest = userStore.getAll(); // Get all records from the "users" store
-
-            getAllRequest.onsuccess = function() {
-                const users = getAllRequest.result;
-                const userList = document.getElementById("userList");
-
-                if (users.length > 0) {
-                    // Loop through the users and display their usernames
-                    users.forEach(user => {
-                        const li = document.createElement("li");
-                        li.textContent = user.username;
-                        userList.appendChild(li);
-                    });
-                } else {
-                    // Display a message if no users are found
+            const users = objectStore.getAll();
+            users.onsuccess = function () {
+                const userListData = users.result;
+                userList.innerHTML = '';
+                userListData.forEach(user => {
                     const li = document.createElement("li");
-                    li.textContent = "No users found.";
+                    li.textContent = `Username: ${user.username}, Email: ${user.email}`;
                     userList.appendChild(li);
-                }
-            };
-
-            getAllRequest.onerror = function() {
-                alert("Error fetching users from the database.");
+                });
             };
         }
     </script>
