@@ -3,13 +3,143 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Homepage</title>
+    <title>Registration</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        label {
+            font-weight: bold;
+            margin-top: 10px;
+            display: block;
+        }
+
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: 1px solid #ccc;
+            border-radius: 4px;
+        }
+
+        button {
+            width: 100%;
+            padding: 10px;
+            background-color: #5c6bc0;
+            color: white;
+            border: none;
+            border-radius: 4px;
+            font-size: 16px;
+            cursor: pointer;
+        }
+
+        button:hover {
+            background-color: #3f51b5;
+        }
+
+        .message {
+            text-align: center;
+            margin-top: 10px;
+            color: red;
+        }
+    </style>
 </head>
 <body>
+    <div class="container">
+        <h2>Register</h2>
+        <form id="registerForm">
+            <label for="username">Username:</label>
+            <input type="text" id="username" name="username" required><br>
 
-    <h1>Welcome to the Simple Login System</h1>
-    <p><a href="register.html">Register</a></p>
-    <p><a href="login.html">Login</a></p>
+            <label for="password">Password:</label>
+            <input type="password" id="password" name="password" required><br>
 
+            <button type="submit">Register</button>
+        </form>
+        <div id="message" class="message"></div>
+    </div>
+
+    <script>
+        // Open IndexedDB (create it if it doesn't exist)
+        let db;
+        const request = indexedDB.open("UserDatabase", 1);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            db.createObjectStore("users", { keyPath: "username" });
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+        };
+
+        request.onerror = function(event) {
+            alert("Error opening IndexedDB database");
+        };
+
+        // Handle form submission for user registration
+        document.getElementById('registerForm').addEventListener('submit', function(event) {
+            event.preventDefault();
+
+            const username = document.getElementById('username').value;
+            const password = document.getElementById('password').value;
+            const messageDiv = document.getElementById('message');
+
+            if (username && password) {
+                const transaction = db.transaction(["users"], "readwrite");
+                const userStore = transaction.objectStore("users");
+
+                // Check if the username already exists
+                const getRequest = userStore.get(username);
+
+                getRequest.onsuccess = function() {
+                    if (getRequest.result) {
+                        // Username already exists
+                        messageDiv.textContent = "Username already exists! Please choose a different one.";
+                    } else {
+                        // Add new user to IndexedDB
+                        const newUser = { username: username, password: password };
+                        const addRequest = userStore.add(newUser);
+
+                        addRequest.onsuccess = function() {
+                            messageDiv.textContent = "Registration successful!";
+                            messageDiv.style.color = "green";
+                            document.getElementById('registerForm').reset();
+                        };
+
+                        addRequest.onerror = function() {
+                            messageDiv.textContent = "Error saving user data.";
+                        };
+                    }
+                };
+
+                getRequest.onerror = function() {
+                    messageDiv.textContent = "Error retrieving user data.";
+                };
+            } else {
+                messageDiv.textContent = "Please fill in both username and password.";
+            }
+        });
+    </script>
 </body>
 </html>
