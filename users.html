@@ -1,0 +1,124 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>All Users</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background-color: #f4f4f4;
+        }
+
+        .container {
+            background-color: white;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            width: 300px;
+        }
+
+        h2 {
+            text-align: center;
+            color: #333;
+        }
+
+        ul {
+            list-style-type: none;
+            padding: 0;
+        }
+
+        li {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+            text-align: center;
+        }
+
+        li:last-child {
+            border-bottom: none;
+        }
+
+        .back-link {
+            display: block;
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: #5c6bc0;
+            font-size: 16px;
+        }
+
+        .back-link a:hover {
+            color: #3f51b5;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>All Users</h2>
+        <ul id="userList">
+            <!-- Users will be listed here -->
+        </ul>
+        <div class="back-link">
+            <a href="index.html">Back to Home</a>
+        </div>
+    </div>
+
+    <script>
+        // Open IndexedDB (create it if it doesn't exist)
+        let db;
+        const request = indexedDB.open("UserDatabase", 1);
+
+        request.onupgradeneeded = function(event) {
+            db = event.target.result;
+            db.createObjectStore("users", { keyPath: "username" });
+        };
+
+        request.onsuccess = function(event) {
+            db = event.target.result;
+            displayUsers();
+        };
+
+        request.onerror = function(event) {
+            alert("Error opening IndexedDB database");
+        };
+
+        // Function to display all users
+        function displayUsers() {
+            const transaction = db.transaction(["users"], "readonly");
+            const userStore = transaction.objectStore("users");
+            const getAllRequest = userStore.getAll(); // Get all records from the "users" store
+
+            getAllRequest.onsuccess = function() {
+                const users = getAllRequest.result;
+                const userList = document.getElementById("userList");
+
+                if (users.length > 0) {
+                    // Loop through the users and display their usernames
+                    users.forEach(user => {
+                        const li = document.createElement("li");
+                        li.textContent = user.username;
+                        userList.appendChild(li);
+                    });
+                } else {
+                    // Display a message if no users are found
+                    const li = document.createElement("li");
+                    li.textContent = "No users found.";
+                    userList.appendChild(li);
+                }
+            };
+
+            getAllRequest.onerror = function() {
+                alert("Error fetching users from the database.");
+            };
+        }
+    </script>
+</body>
+</html>
