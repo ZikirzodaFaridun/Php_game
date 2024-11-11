@@ -3,143 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Registration</title>
+    <title>Register</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            height: 100vh;
             margin: 0;
+            padding: 0;
             background-color: #f4f4f4;
         }
 
         .container {
+            max-width: 600px;
+            margin: 50px auto;
             background-color: white;
             padding: 20px;
             border-radius: 8px;
             box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
         }
 
-        h2 {
+        h1 {
             text-align: center;
-            color: #333;
         }
 
-        label {
-            font-weight: bold;
-            margin-top: 10px;
-            display: block;
-        }
-
-        input {
+        input, button {
             width: 100%;
-            padding: 8px;
-            margin: 8px 0;
-            border: 1px solid #ccc;
+            padding: 10px;
+            margin: 10px 0;
             border-radius: 4px;
+            border: 1px solid #ddd;
         }
 
         button {
-            width: 100%;
-            padding: 10px;
             background-color: #5c6bc0;
             color: white;
             border: none;
-            border-radius: 4px;
-            font-size: 16px;
-            cursor: pointer;
         }
 
         button:hover {
             background-color: #3f51b5;
         }
 
-        .message {
+        .back-link {
             text-align: center;
             margin-top: 10px;
-            color: red;
+        }
+
+        .back-link a {
+            text-decoration: none;
+            color: #5c6bc0;
         }
     </style>
 </head>
 <body>
     <div class="container">
-        <h2>Register</h2>
-        <form id="registerForm">
-            <label for="username">Username:</label>
-            <input type="text" id="username" name="username" required><br>
-
-            <label for="password">Password:</label>
-            <input type="password" id="password" name="password" required><br>
-
+        <h1>Register</h1>
+        <form id="register-form">
+            <input type="text" id="username" placeholder="Username" required>
+            <input type="email" id="email" placeholder="Email" required>
+            <input type="password" id="password" placeholder="Password" required>
             <button type="submit">Register</button>
         </form>
-        <div id="message" class="message"></div>
+        <div class="back-link">
+            <a href="index.html">Back to Home</a>
+        </div>
     </div>
 
     <script>
-        // Open IndexedDB (create it if it doesn't exist)
-        let db;
-        const request = indexedDB.open("UserDatabase", 1);
+        // Open IndexedDB database
+        const dbRequest = indexedDB.open("userDatabase", 1);
 
-        request.onupgradeneeded = function(event) {
-            db = event.target.result;
-            db.createObjectStore("users", { keyPath: "username" });
-        };
-
-        request.onsuccess = function(event) {
-            db = event.target.result;
-        };
-
-        request.onerror = function(event) {
-            alert("Error opening IndexedDB database");
-        };
-
-        // Handle form submission for user registration
-        document.getElementById('registerForm').addEventListener('submit', function(event) {
-            event.preventDefault();
-
-            const username = document.getElementById('username').value;
-            const password = document.getElementById('password').value;
-            const messageDiv = document.getElementById('message');
-
-            if (username && password) {
-                const transaction = db.transaction(["users"], "readwrite");
-                const userStore = transaction.objectStore("users");
-
-                // Check if the username already exists
-                const getRequest = userStore.get(username);
-
-                getRequest.onsuccess = function() {
-                    if (getRequest.result) {
-                        // Username already exists
-                        messageDiv.textContent = "Username already exists! Please choose a different one.";
-                    } else {
-                        // Add new user to IndexedDB
-                        const newUser = { username: username, password: password };
-                        const addRequest = userStore.add(newUser);
-
-                        addRequest.onsuccess = function() {
-                            messageDiv.textContent = "Registration successful!";
-                            messageDiv.style.color = "green";
-                            document.getElementById('registerForm').reset();
-                        };
-
-                        addRequest.onerror = function() {
-                            messageDiv.textContent = "Error saving user data.";
-                        };
-                    }
-                };
-
-                getRequest.onerror = function() {
-                    messageDiv.textContent = "Error retrieving user data.";
-                };
-            } else {
-                messageDiv.textContent = "Please fill in both username and password.";
+        dbRequest.onupgradeneeded = function (e) {
+            const db = e.target.result;
+            if (!db.objectStoreNames.contains("users")) {
+                db.createObjectStore("users", { keyPath: "id", autoIncrement: true });
             }
-        });
+        };
+
+        dbRequest.onsuccess = function (e) {
+            const db = e.target.result;
+            document.getElementById("register-form").addEventListener("submit", function (event) {
+                event.preventDefault();
+
+                // Get form values
+                const username = document.getElementById("username").value;
+                const email = document.getElementById("email").value;
+                const password = document.getElementById("password").value;
+
+                // Add new user to IndexedDB
+                const transaction = db.transaction("users", "readwrite");
+                const objectStore = transaction.objectStore("users");
+
+                const newUser = {
+                    username: username,
+                    email: email,
+                    password: password,
+                };
+
+                objectStore.add(newUser);
+                alert("User registered successfully!");
+
+                // Reset form fields
+                document.getElementById("register-form").reset();
+            });
+        };
     </script>
 </body>
 </html>
