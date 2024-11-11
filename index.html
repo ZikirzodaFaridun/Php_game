@@ -3,91 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Click the Button Game</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            text-align: center;
-            margin-top: 50px;
-            background-color: #f0f0f0;
-        }
-        .game-container {
-            background-color: #fff;
-            border-radius: 10px;
-            padding: 20px;
-            box-shadow: 0px 4px 8px rgba(0, 0, 0, 0.1);
-            width: 300px;
-            margin: 0 auto;
-        }
-        .button {
-            font-size: 20px;
-            padding: 20px 40px;
-            background-color: #a42eff;
-            color: white;
-            border: none;
-            border-radius: 10px;
-            cursor: pointer;
-            transition: background-color 0.3s;
-        }
-        .button:hover {
-            background-color: #9b34d8;
-        }
-        .result {
-            font-size: 18px;
-            margin-top: 20px;
-        }
-        .score {
-            font-size: 22px;
-            color: #333;
-        }
-        .timer {
-            font-size: 18px;
-            color: #ff5733;
-        }
-    </style>
+    <title>Homepage</title>
 </head>
 <body>
 
-    <div class="game-container">
-        <h2>Click the Button Game</h2>
-        <button class="button" id="gameButton">Click Me!</button>
-        <div class="result">
-            <p class="score">Score: <span id="score">0</span></p>
-            <p class="timer" id="timer">Time left: 30s</p>
-        </div>
-    </div>
-
-    <script>
-        let score = 0;
-        let timeLeft = 30;
-        let timer;
-
-        const gameButton = document.getElementById('gameButton');
-        const scoreDisplay = document.getElementById('score');
-        const timerDisplay = document.getElementById('timer');
-
-        // Function to start the timer
-        function startTimer() {
-            timer = setInterval(() => {
-                timeLeft--;
-                timerDisplay.textContent = `Time left: ${timeLeft}s`;
-                if (timeLeft <= 0) {
-                    clearInterval(timer);
-                    gameButton.disabled = true; // Disable the button when time runs out
-                    alert("Game Over! Your final score is: " + score);
-                }
-            }, 1000);
-        }
-
-        // Start the game when the page loads
-        window.onload = function() {
-            startTimer();
-            gameButton.onclick = function() {
-                score++;
-                scoreDisplay.textContent = score;
-            };
-        };
-    </script>
+    <h1>Welcome to the Simple Login System</h1>
+    <p><a href="register.html">Register</a></p>
+    <p><a href="login.html">Login</a></p>
 
 </body>
 </html>
