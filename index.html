@@ -3,109 +3,76 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Register</title>
+    <title>Contact Upload</title>
     <style>
         body {
             font-family: Arial, sans-serif;
-            margin: 0;
-            padding: 0;
-            background-color: #f4f4f4;
-        }
-
-        .container {
-            max-width: 600px;
-            margin: 50px auto;
-            background-color: white;
             padding: 20px;
-            border-radius: 8px;
-            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
-        }
-
-        h1 {
             text-align: center;
         }
-
-        input, button {
+        input[type="file"] {
+            margin-bottom: 10px;
+        }
+        table {
             width: 100%;
+            margin-top: 20px;
+            border-collapse: collapse;
+        }
+        th, td {
             padding: 10px;
-            margin: 10px 0;
-            border-radius: 4px;
-            border: 1px solid #ddd;
-        }
-
-        button {
-            background-color: #5c6bc0;
-            color: white;
-            border: none;
-        }
-
-        button:hover {
-            background-color: #3f51b5;
-        }
-
-        .back-link {
-            text-align: center;
-            margin-top: 10px;
-        }
-
-        .back-link a {
-            text-decoration: none;
-            color: #5c6bc0;
+            text-align: left;
+            border-bottom: 1px solid #ddd;
         }
     </style>
 </head>
 <body>
-    <div class="container">
-        <h1>Register</h1>
-        <form id="register-form">
-            <input type="text" id="username" placeholder="Username" required>
-            <input type="email" id="email" placeholder="Email" required>
-            <input type="password" id="password" placeholder="Password" required>
-            <button type="submit">Register</button>
-        </form>
-        <div class="back-link">
-            <a href="users.html">Back to Home</a>
-        </div>
-    </div>
+    <h1>Upload Contacts</h1>
+    <input type="file" id="fileInput" accept=".csv" />
+    <table id="contactTable">
+        <thead>
+            <tr>
+                <th>Name</th>
+                <th>Phone</th>
+            </tr>
+        </thead>
+        <tbody>
+        </tbody>
+    </table>
 
     <script>
-        // Open IndexedDB database
-        const dbRequest = indexedDB.open("userDatabase", 1);
+        document.getElementById('fileInput').addEventListener('change', handleFileUpload);
 
-        dbRequest.onupgradeneeded = function (e) {
-            const db = e.target.result;
-            if (!db.objectStoreNames.contains("users")) {
-                db.createObjectStore("users", { keyPath: "id", autoIncrement: true });
-            }
-        };
+        function handleFileUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
 
-        dbRequest.onsuccess = function (e) {
-            const db = e.target.result;
-            document.getElementById("register-form").addEventListener("submit", function (event) {
-                event.preventDefault();
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                const csv = e.target.result;
+                parseCSV(csv);
+            };
+            reader.readAsText(file);
+        }
 
-                // Get form values
-                const username = document.getElementById("username").value;
-                const email = document.getElementById("email").value;
-                const password = document.getElementById("password").value;
+        function parseCSV(csv) {
+            const rows = csv.split('\n');
+            const tableBody = document.querySelector('#contactTable tbody');
+            tableBody.innerHTML = ''; // Clear previous table content
 
-                // Add new user to IndexedDB
-                const transaction = db.transaction("users", "readwrite");
-                const objectStore = transaction.objectStore("users");
-
-                const newUser = {
-                    username: username,
-                    email: email,
-                    password: password,
-                };
-
-                objectStore.add(newUser);
-                alert("User registered successfully!");
-
-                // Reset form fields
-                document.getElementById("register-form").reset();
+            rows.forEach(row => {
+                const cols = row.split(',');
+                if (cols.length === 2) {  // Expecting 2 columns: Name and Phone
+                    const tr = document.createElement('tr');
+                    const nameTd = document.createElement('td');
+                    nameTd.textContent = cols[0].trim();
+                    const phoneTd = document.createElement('td');
+                    phoneTd.textContent = cols[1].trim();
+                    tr.appendChild(nameTd);
+                    tr.appendChild(phoneTd);
+                    tableBody.appendChild(tr);
+                }
             });
-        };
+        }
     </script>
 </body>
 </html>
